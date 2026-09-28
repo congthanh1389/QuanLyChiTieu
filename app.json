@@ -1,0 +1,43 @@
+{
+  "expo": {
+    "name": "Quản lý chi tiêu",
+    "slug": "quanlychitieu",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/app-icon/icon.png",
+    "scheme": "quanlychitieu",
+    "userInterfaceStyle": "automatic",
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      "expo-notifications",
+      "expo-camera",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+		"buildArchs": [
+  		"x86_64",
+  		"arm64-v8a"
+		],
+            "minSdkVersion": 24
+          }
+        }
+      ]
+    ],
+    "android": {
+      "package": "com.quanlychitieu.app",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/app-icon/icon.png",
+        "backgroundColor": "#10B981"
+      },
+      "permissions": [
+        "CAMERA",
+        "POST_NOTIFICATIONS"
+      ]
+    },
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

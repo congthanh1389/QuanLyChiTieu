@@ -1,0 +1,2 @@
+import {FinanceSummary, Transaction} from '../../../src/models/finance';
+export const calculateSummary=(items:Transaction[], budget=0):FinanceSummary=>{const income=items.filter(x=>x.type==='income').reduce((s,x)=>s+x.amount,0);const expense=items.filter(x=>x.type==='expense').reduce((s,x)=>s+x.amount,0);const byCategory:Record<string,number>={};items.filter(x=>x.type==='expense').forEach(x=>byCategory[x.category]=(byCategory[x.category]||0)+x.amount);return {income,expense,balance:income-expense,budget,budgetUsed:expense,byCategory};};

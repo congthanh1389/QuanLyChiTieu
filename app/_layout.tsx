@@ -1,0 +1,1 @@
+import {Stack} from 'expo-router';import React from 'react';import {FinanceViewModelProvider} from '../src/viewmodels/FinanceViewModelProvider';export default function Layout(){const month=new Date().toISOString().slice(0,7);return <FinanceViewModelProvider month={month}><Stack screenOptions={{headerShown:false}}/></FinanceViewModelProvider>}
