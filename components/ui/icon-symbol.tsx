@@ -15,6 +15,7 @@ const MAPPING = {
   "wallet.fill": "account-balance-wallet",
   "camera.fill": "photo-camera",
   "bell.fill": "notifications",
+  "power.fill": "power-settings-new",
 } as const satisfies Record<
   string,
   ComponentProps<typeof MaterialIcons>["name"]
