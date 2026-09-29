@@ -1,18 +1,42 @@
-import React, { useState } from 'react';
-import { Alert, FlatList, Text, View, StyleSheet } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { Alert, FlatList, Pressable, Text, View, StyleSheet } from 'react-native';
 
 import { useFinance } from '../viewmodels/FinanceViewModelProvider';
 import { Button, Card, Input } from '../components/ui';
 import { CATEGORIES, Transaction } from '../models/finance';
 
+function normalizeForSearch(value: string): string {
+  return value
+    .trim()
+    .toLocaleLowerCase('vi-VN')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd');
+}
+
 export default function TransactionsView() {
-  const { items, save, remove } = useFinance();
+  const { items, allItems, save, remove } = useFinance();
   const [query, setQuery] = useState('');
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
+  const [categoryFocused, setCategoryFocused] = useState(false);
   const [type, setType] = useState<'income' | 'expense'>('expense');
   const [category, setCategory] = useState<string>(CATEGORIES[0]);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  const categorySuggestions = useMemo(() => {
+    const seen = new Set<string>();
+    const prefix = normalizeForSearch(category);
+    const savedCategories = [...CATEGORIES, ...allItems.map((item) => item.category.trim())]
+      .filter((savedNote) => {
+        const key = normalizeForSearch(savedNote);
+        if (!key || seen.has(key) || (prefix && !key.startsWith(prefix))) return false;
+        seen.add(key);
+        return true;
+      })
+      .slice(0, 6);
+    return categoryFocused ? savedCategories : [];
+  }, [allItems, category, categoryFocused]);
 
   const resetForm = () => {
     setAmount('');
@@ -88,8 +112,44 @@ export default function TransactionsView() {
           <Button title="Khoản thu" onPress={() => setType('income')} secondary={type !== 'income'} />
         </View>
         <Input keyboardType="numeric" placeholder="Số tiền" value={amount} onChangeText={setAmount} />
-        <Input placeholder="Ghi chú" value={note} onChangeText={setNote} />
-        <Input placeholder={`Danh mục: ${category}`} value={category} onChangeText={setCategory} />
+        <Input
+          placeholder="Ghi chú"
+          value={note}
+          onChangeText={setNote}
+          keyboardType="default"
+          autoCapitalize="none"
+          autoCorrect={false}
+          spellCheck={false}
+          accessibilityLabel="Ghi chú giao dịch"
+        />
+        <Input
+          placeholder={`Danh mục: ${category}`}
+          value={category}
+          onChangeText={setCategory}
+          keyboardType="default"
+          autoCapitalize="none"
+          autoCorrect={false}
+          spellCheck={false}
+          onFocus={() => setCategoryFocused(true)}
+          onBlur={() => setCategoryFocused(false)}
+          accessibilityLabel="Danh mục giao dịch"
+        />
+        {categorySuggestions.length > 0 ? (
+          <View style={styles.suggestions}>
+            <Text style={styles.suggestionTitle}>Gợi ý danh mục</Text>
+            {categorySuggestions.map((suggestion) => (
+              <Pressable
+                key={normalizeForSearch(suggestion)}
+                accessibilityRole="button"
+                accessibilityLabel={`Chọn danh mục ${suggestion}`}
+                onPressIn={() => setCategory(suggestion)}
+                style={({ pressed }) => [styles.suggestion, pressed && styles.suggestionPressed]}
+              >
+                <Text style={styles.suggestionText}>{suggestion}</Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
         <Button title={editingId ? 'Cập nhật giao dịch' : 'Lưu giao dịch'} onPress={submit} />
         {editingId ? <Button title="Hủy sửa" onPress={resetForm} secondary /> : null}
       </Card>
@@ -127,6 +187,11 @@ const styles = StyleSheet.create({
   details: { flex: 1 },
   actions: { flexDirection: 'row', gap: 8, marginTop: 6 },
   formTitle: { fontWeight: '800', fontSize: 18, color: '#14213d' },
+  suggestions: { backgroundColor: '#f8faff', borderRadius: 12, padding: 8, marginTop: 2, marginBottom: 6 },
+  suggestionTitle: { color: '#63708a', fontSize: 12, fontWeight: '700', marginBottom: 2 },
+  suggestion: { paddingVertical: 10, paddingHorizontal: 8, borderRadius: 8 },
+  suggestionPressed: { backgroundColor: '#e8eefc' },
+  suggestionText: { color: '#14213d', fontSize: 15 },
   category: { fontWeight: '800', color: '#14213d' },
   note: { color: '#77839a', marginTop: 4 },
   income: { color: '#159a63', fontWeight: '800' },
